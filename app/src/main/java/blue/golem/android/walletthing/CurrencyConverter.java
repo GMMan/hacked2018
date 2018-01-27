@@ -26,6 +26,7 @@ public class CurrencyConverter {
     private static final String CURRENCY_XML_URL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml";
 
     private HashMap<String, Double> currencies;
+    private boolean isReady;
 
     public CurrencyConverter() {
         currencies = new HashMap<>();
@@ -48,7 +49,12 @@ public class CurrencyConverter {
         return currencies.keySet();
     }
 
+    public boolean getReady() {
+        return isReady;
+    }
+    
     public void clearCurrencies() {
+        isReady = false;
         currencies.clear();
         currencies.put("EUR", 1.0);
     }
@@ -63,6 +69,7 @@ public class CurrencyConverter {
             @Override
             public void run() {
                 downloadCurrencyData();
+                isReady = true;
             }
         }.start();
     }
