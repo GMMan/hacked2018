@@ -29,7 +29,7 @@ public class CurrencyConverter {
     public CurrencyConverter() {
         currencies = new HashMap<>();
         currencies.put("EUR", 1.0);
-        downloadCurrencyData();
+        downloadCurrencyDataThreaded();
     }
 
     public BigDecimal convert(String from, String to, BigDecimal amount) {
@@ -53,7 +53,16 @@ public class CurrencyConverter {
 
     public void refresh() {
         clearCurrencies();
-        downloadCurrencyData();
+        downloadCurrencyDataThreaded();
+    }
+
+    private void downloadCurrencyDataThreaded() {
+        new Thread() {
+            @Override
+            public void run() {
+                downloadCurrencyData();
+            }
+        }.start();
     }
 
     private void downloadCurrencyData() {
@@ -73,20 +82,19 @@ public class CurrencyConverter {
                 @Override
                 public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException {
                     if (localName.equals("Cube")) {
+                        String currencyName = null;
+                        String currencyValue = null;
                         for (int i = 0; i < attributes.getLength(); ++i) {
-                            String currencyName = null;
-                            String currencyValue = null;
                             String attrName = attributes.getLocalName(i);
                             if (attrName.equals("currency")) {
                                 currencyName = attributes.getValue(i);
                             } else if (attrName.equals("rate")) {
                                 currencyValue = attributes.getValue(i);
                             }
-
-                            if (currencyName != null && currencyValue != null) {
-                                double rate = Double.parseDouble(currencyValue);
-                                currencies.put(currencyName, rate);
-                            }
+                        }
+                        if (currencyName != null && currencyValue != null) {
+                            double rate = Double.parseDouble(currencyValue);
+                            currencies.put(currencyName, rate);
                         }
                     }
                 }
