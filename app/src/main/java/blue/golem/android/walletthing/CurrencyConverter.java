@@ -8,6 +8,7 @@ import org.xml.sax.helpers.DefaultHandler;
 
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.HashMap;
@@ -33,13 +34,14 @@ public class CurrencyConverter {
     }
 
     public BigDecimal convert(String from, String to, BigDecimal amount) {
-        double d = currencies.get(to);
-        if (d == 0) return null;
-        double fromV = currencies.get(from);
-        if (fromV == 0) return null;
-        BigDecimal multiplier = new BigDecimal(1).divide(new BigDecimal(d)).multiply(new BigDecimal(to));
-
-        return amount.multiply(multiplier);
+        double toRate = currencies.get(to);
+        if (toRate == 0) return null;
+        double fromRate = currencies.get(from);
+        if (fromRate == 0) return null;
+        BigDecimal toEuro = amount.setScale(10).divide(new BigDecimal(fromRate), BigDecimal.ROUND_HALF_EVEN);
+        BigDecimal toTarget = toEuro.multiply(new BigDecimal(toRate));
+        BigDecimal finalNum = toTarget.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+        return finalNum;
     }
 
     public Set<String> getCurrencies() {
