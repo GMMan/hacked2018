@@ -2,6 +2,7 @@ package blue.golem.android.walletthing;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
@@ -17,9 +18,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
     }
 
-    @Override
-    protected void onStart() {
-        super.onStart();
+    public void onRefreshClicked(View v) {
         Spinner fromSpinner = findViewById(R.id.fromSpinner);
         Spinner toSpinner = findViewById(R.id.toSpinner);
         Set<String> currencies = currencyConverter.getCurrencies();

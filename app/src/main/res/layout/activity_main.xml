@@ -34,10 +34,17 @@
 
     <Button
         android:id="@+id/convertButton"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Convert"
         tools:layout_editor_absoluteX="148dp"
         tools:layout_editor_absoluteY="122dp" />
+
+    <Button
+        android:id="@+id/refreshButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="onRefreshClicked"
+        android:text="Refresh" />
 
 </LinearLayout>
