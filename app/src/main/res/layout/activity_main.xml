@@ -36,6 +36,7 @@
         android:id="@+id/convertButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:onClick="onConvertClick"
         android:text="Convert"
         tools:layout_editor_absoluteX="148dp"
         tools:layout_editor_absoluteY="122dp" />
@@ -44,7 +45,7 @@
         android:id="@+id/refreshButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="onRefreshClicked"
+        android:onClick="onRefreshClick"
         android:text="Refresh" />
 
 </LinearLayout>
