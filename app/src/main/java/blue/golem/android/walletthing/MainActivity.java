@@ -320,8 +320,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean sendSelectedDatabase() {
-        String from = fromAmountView.getText().toString();
-        String to = toAmountView.getText().toString();
+        String from = (String)fromSpinner.getSelectedItem();
+        String to = (String)toSpinner.getSelectedItem();
         Map<Integer, int[][]> db = DetectionDatabase.getDatabaseForCurrency(to);
         if (db != null) {
             int[] vals = new int[db.size()];
