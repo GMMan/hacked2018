@@ -9,11 +9,20 @@ import java.io.IOException;
  */
 
 public class SetDatabaseCommand extends Command {
+    private int[] currencyValues;
     private int[][][] database;
     private int conversionRate;
 
     public SetDatabaseCommand() {
         id = 1;
+    }
+
+    public int[] getCurrencyValues() {
+        return currencyValues;
+    }
+
+    public void setCurrencyValues(int[] currencyValues) {
+        this.currencyValues = currencyValues;
     }
 
     public int[][][] getDatabase() {
@@ -28,13 +37,15 @@ public class SetDatabaseCommand extends Command {
         return conversionRate / 100.0;
     }
 
-    public void setConversionRate(float value) {
+    public void setConversionRate(double value) {
         conversionRate = (int) (value * 100);
     }
 
     @Override
     protected byte[] serializeParams() throws IllegalStateException, IOException {
         if (database == null) throw new IllegalStateException("No database specified.");
+        if (currencyValues == null) throw new IllegalStateException("No currency values specified.");
+        if (database.length != currencyValues.length) throw new IllegalStateException("Currency values count and database do not match.");
 
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         DataOutputStream bw = new DataOutputStream(os);
@@ -42,6 +53,9 @@ public class SetDatabaseCommand extends Command {
         bw.writeByte(database.length);
         bw.writeByte(database[0].length);
         bw.writeByte(database[0][0].length);
+        for (int v : currencyValues) {
+            write7BitEncodedInt(bw, v);
+        }
         for (int[][] x : database) {
             for (int[] y : x) {
                 for (int z : y) {

@@ -1,5 +1,8 @@
 package blue.golem.android.walletthing;
 
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattService;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -24,12 +27,18 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.polkapolka.bluetooth.le.BluetoothLeService;
+import com.polkapolka.bluetooth.le.SampleGattAttributes;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import blue.golem.android.walletthing.devcomm.Command;
+import blue.golem.android.walletthing.devcomm.SetDatabaseCommand;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -48,6 +57,8 @@ public class MainActivity extends AppCompatActivity {
     private String devToAmount = "0.00";
     private SharedPreferences prefs;
     private BluetoothLeService bleService;
+    private BluetoothGattCharacteristic characteristicTX;
+    private BluetoothGattCharacteristic characteristicRX;
 
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
 
@@ -74,9 +85,20 @@ public class MainActivity extends AppCompatActivity {
             final String action = intent.getAction();
             if (BluetoothLeService.ACTION_DEVICE_FOUND.equals(action)) {
                 bleService.connect(bleService.getFoundBluetoothDeviceAddress());
+            } else if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
                 Snackbar.make(findViewById(R.id.mainLayout),
-                        "Device found: " + bleService.getFoundBluetoothDeviceAddress(),
+                        "Connected to wallet",
                         Snackbar.LENGTH_LONG).show();
+            } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
+                for (BluetoothGattService gattService : bleService.getSupportedGattServices()) {
+                    String serviceUuid = gattService.getUuid().toString();
+                    if (serviceUuid.equals(SampleGattAttributes.HM_10_CONF)) {
+                        characteristicTX = gattService.getCharacteristic(BluetoothLeService.UUID_HM_RX_TX);
+                        characteristicRX = gattService.getCharacteristic(BluetoothLeService.UUID_HM_RX_TX);
+                        break;
+                    }
+                }
+                if (characteristicTX != null) sendSelectedDatabase();
             }
         }
     };
@@ -169,12 +191,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
-/*
-        if (bleService != null) {
-            final boolean result = bleService.connect(mDeviceAddress);
+        if (bleService != null && bleService.getFoundBluetoothDeviceAddress() != null) {
+            final boolean result = bleService.connect(bleService.getFoundBluetoothDeviceAddress());
             Log.d(TAG, "Connect request result=" + result);
         }
-*/
     }
 
     @Override
@@ -199,10 +219,10 @@ public class MainActivity extends AppCompatActivity {
     private static IntentFilter makeGattUpdateIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BluetoothLeService.ACTION_DEVICE_FOUND);
-/*
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
-        intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
+/*
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
         intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
 */
         return intentFilter;
@@ -218,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
         String toAmount = toAmountView.getText().toString();
         SharedPreferences.Editor e = prefs.edit();
         e.putString("cached_amount", fromAmountView.getText().toString());
-        e.commit();
+        e.apply();
         devFromAmount = fromAmount;
         devToAmount = toAmount;
     }
@@ -297,5 +317,41 @@ public class MainActivity extends AppCompatActivity {
         BigDecimal fromDec = new BigDecimal(amount);
         BigDecimal toDec = CurrencyConverter.getInstance().convert(from, to, fromDec);
         destView.setText(toDec.toString());
+    }
+
+    private boolean sendSelectedDatabase() {
+        String from = fromAmountView.getText().toString();
+        String to = toAmountView.getText().toString();
+        Map<Integer, int[][]> db = DetectionDatabase.getDatabaseForCurrency(to);
+        if (db != null) {
+            int[] vals = new int[db.size()];
+            int[][][] database = new int[db.size()][][];
+            int i = 0;
+            for (Map.Entry<Integer, int[][]> entry : db.entrySet()) {
+                vals[i] = entry.getKey();
+                database[i] = entry.getValue();
+                ++i;
+            }
+            SetDatabaseCommand cmd = new SetDatabaseCommand();
+            cmd.setCurrencyValues(vals);
+            cmd.setDatabase(database);
+            cmd.setConversionRate(CurrencyConverter.getInstance().getConversionRate(to, from));
+            return sendCommand(cmd);
+        } else {
+            return false;
+        }
+    }
+
+    private boolean sendCommand(Command cmd) {
+        try {
+            byte[] dataToSend = cmd.serialize();
+            characteristicTX.setValue(dataToSend);
+            bleService.writeCharacteristic(characteristicTX);
+            bleService.setCharacteristicNotification(characteristicRX, true);
+            return true;
+        } catch (Exception ex) {
+            Log.e(TAG, "Failed to send command.", ex);
+            return false;
+        }
     }
 }

@@ -8,12 +8,20 @@ import java.util.Map;
  */
 
 public class DetectionDatabase {
-    private static HashMap<String, int[][][]> database;
+    private static HashMap<String, Map<Integer, int[][]>> database;
 
-    public static Map<String, int[][][]> getDatabase() {
+    public static Map<String, Map<Integer, int[][]>> getDatabase() {
         if (database == null) {
             database = new HashMap<>();
         }
         return database;
+    }
+
+    public static Map<Integer, int[][]> getDatabaseForCurrency(String currency) {
+        Map<String, Map<Integer, int[][]>> db = getDatabase();
+        if (db.containsKey(currency))
+            return db.get(currency);
+        else
+            return null;
     }
 }

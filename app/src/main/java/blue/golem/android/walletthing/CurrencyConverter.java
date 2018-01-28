@@ -52,6 +52,18 @@ public class CurrencyConverter {
         return finalNum;
     }
 
+    public double getConversionRate(String from, String to) {
+        double toRate = currencies.get(to);
+        if (toRate == 0) return -1;
+        double fromRate = currencies.get(from);
+        if (fromRate == 0) return -1;
+        BigDecimal toEuro = BigDecimal.ONE.setScale(10, BigDecimal.ROUND_HALF_EVEN)
+                .divide(new BigDecimal(fromRate), BigDecimal.ROUND_HALF_EVEN);
+        BigDecimal toTarget = toEuro.multiply(new BigDecimal(toRate));
+        BigDecimal finalNum = toTarget.setScale(2, BigDecimal.ROUND_HALF_EVEN);
+        return finalNum.doubleValue();
+    }
+
     public Set<String> getCurrencies() {
         return currencies.keySet();
     }
