@@ -1,50 +1,30 @@
+#include <Adafruit_NeoPixel.h>
 #include "readBLE.h"
 #include "typeOfBill.h"
+
+#define NEO_PIXEL_PIN   6
+
+const int encoderPin = 7;
+const int timeout = 1000;
+
+int sensorPin[NUM_SENSORS] = {A0, A1, A2, A3};
+int colorValue[COLORS] = {0, 100, 200};
+
+int databaseSize = 0;
+
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, NEO_PIXEL_PIN, NEO_RGBW + NEO_KHZ800);
 
 void setup() {
     // put your setup code here, to run once:
     Serial.begin(9600);
     Serial2.begin(9600);
-    
-    int databaseSize = 3;
 
-    int reading[READINGS][COLORS];
-    int database[databaseSize][READINGS][COLORS];
+    strip.begin();
+    strip.setBrightness(30);
 
-    for(int i = 0; i < READINGS; i++){
-        for(int j = 0; j < COLORS; j++){
-            reading[i][j] = random(200);
-            Serial.print("reading ");
-            Serial.print(i);
-            Serial.print(" ");
-            Serial.print(j);
-            Serial.print(" ");
-            Serial.println(reading[i][j]);
-        }
-    }
+    pinMode(encoderPin, INPUT);
 
-    Serial.println();
-
-    for(int h = 0; h < databaseSize; h++){
-        for(int i = 0; i < READINGS; i++){
-            for(int j = 0; j < COLORS; j++){
-                database[h][i][j] = random(200);
-                Serial.print("database ");
-                Serial.print(h);
-                Serial.print(" ");
-                Serial.print(i);
-                Serial.print(" ");
-                Serial.print(j);
-                Serial.print(" ");
-                Serial.println(database[h][i][j]);
-            }
-        }
-    }
-
-    Serial.println();
-
-    Serial.print("Type of bill: ");
-    Serial.println(typeOfBill(databaseSize, reading, database));
+    byte *database;
 
     char *buffer;
     readBLE(&buffer);
@@ -70,6 +50,25 @@ void loop() {
                 break;
             case 3: //get values
                 break;
+        }
+    }
+
+    if(digitalRead(encoderPin == HIGH)){
+        int startTime = millis();
+        byte readingValue[READINGS * NUM_SENSORS][COLORS];
+        for(int reading = 0; reading < READINGS; reading++){
+            delay(50);
+            while(digitalRead(encoderPin == LOW) && millis() - startTime > timeout); // wait
+            if(millis() - startTime > timeout) break;
+            for(int color = 0; color < COLORS; color++){
+                for(uint16_t i=0; i<strip.numPixels(); i++)
+                    strip.setPixelColor(i, colorValue[color]);
+                strip.show();
+                
+                for(int sensor = 0; sensor < NUM_SENSORS; sensor++){
+                    readingValue[reading * NUM_SENSORS + sensor][color] = analogRead(sensorPin[sensor]);
+                }
+            }
         }
     }
 }
