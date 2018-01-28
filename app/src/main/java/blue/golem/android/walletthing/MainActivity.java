@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -73,12 +74,9 @@ public class MainActivity extends AppCompatActivity {
             final String action = intent.getAction();
             if (BluetoothLeService.ACTION_DEVICE_FOUND.equals(action)) {
                 bleService.connect(bleService.getFoundBluetoothDeviceAddress());
-                
-                AlertDialog.Builder alertBuilder = new AlertDialog.Builder(MainActivity.this);
-                alertBuilder.setMessage("Device found: " + bleService.getFoundBluetoothDeviceAddress())
-                        .setIcon(android.R.drawable.ic_dialog_info)
-                        .setPositiveButton("OK", null)
-                        .create().show();
+                Snackbar.make(findViewById(R.id.mainLayout),
+                        "Device found: " + bleService.getFoundBluetoothDeviceAddress(),
+                        Snackbar.LENGTH_LONG).show();
             }
         }
     };
