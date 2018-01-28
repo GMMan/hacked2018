@@ -17,3 +17,7 @@ Software: Android 5.0
 - Displays - current amount in wallet, history
 - Sends - photoresistor comparison values for various bills, reset, conversion rate for supported bills
 - Recieves - current value, conversion rate from internet, notification when money inserted/removed
+
+Acknowledgements:
+- Lots of BLE code from https://github.com/danasf/hm10-android-arduino
+- European Central Bank for currency data
