@@ -3,4 +3,7 @@
     <string name="from_currency">Home currency</string>
     <string name="to_currency">Foreign currency</string>
     <string name="loading_text">Loading currencies...</string>
+    <string name="mode_button_text">Mode</string>
+    <string name="device_button_text">Wallet</string>
+    <string name="set_button_text">Set My Money</string>
 </resources>
