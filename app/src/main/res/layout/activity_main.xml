@@ -100,13 +100,6 @@
             android:text="@string/mode_button_text" />
 
         <Button
-            android:id="@+id/deviceButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/device_button_text" />
-
-        <Button
             android:id="@+id/setButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
