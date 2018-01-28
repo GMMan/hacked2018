@@ -379,4 +379,8 @@ public class BluetoothLeService extends Service {
             mBluetoothScanner.stopScan(callback);
         }
     }
+
+    public boolean isBluetoothAvailable() {
+        return mBluetoothAdapter != null && mBluetoothAdapter.isEnabled();
+    }
 }

@@ -1,5 +1,6 @@
 package blue.golem.android.walletthing;
 
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
@@ -48,6 +49,7 @@ import blue.golem.android.walletthing.devcomm.SetValueCommand;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    private static final int REQUEST_ENABLE_BT = 1;
 
     private Spinner fromSpinner;
     private Spinner toSpinner;
@@ -71,8 +73,14 @@ public class MainActivity extends AppCompatActivity {
         public void onServiceConnected(ComponentName componentName, IBinder service) {
             bleService = ((BluetoothLeService.LocalBinder) service).getService();
             if (!bleService.initialize()) {
-                Log.e(TAG, "Unable to initialize Bluetooth");
-                finish();
+                if (!bleService.isBluetoothAvailable()) {
+                    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+                } else {
+                    Log.e(TAG, "Unable to initialize Bluetooth");
+                    finish();
+                }
+                return;
             }
             // Automatically connects to the device upon successful start-up initialization.
             bleService.autoDetectSerialDevice();
@@ -224,6 +232,16 @@ public class MainActivity extends AppCompatActivity {
         bleService = null;
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_ENABLE_BT) {
+            if (bleService.initialize()) {
+                bleService.autoDetectSerialDevice();
+            }
+        }
+    }
+
     private static IntentFilter makeGattUpdateIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BluetoothLeService.ACTION_DEVICE_FOUND);
@@ -359,7 +377,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean sendCommand(Command cmd) {
-        if (characteristicTX == null) return false;
+        if (bleService == null || !bleService.isBluetoothAvailable() || characteristicTX == null) return false;
 
         try {
             byte[] dataToSend = cmd.serialize();
