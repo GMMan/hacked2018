@@ -2,8 +2,8 @@ package blue.golem.android.walletthing;
 
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -30,6 +30,8 @@ public class MainActivity extends AppCompatActivity {
     Drawable toEditableBackground;
     String prevFromCurrency;
     String prevToCurrency;
+    String devFromAmount = "0.00";
+    String devToAmount = "0.00";
     SharedPreferences prefs;
 
     @Override
@@ -51,7 +53,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Setup some views
-        setEditMode(isEditMode);
         TextView.OnEditorActionListener editorActionListener = new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
@@ -86,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
         prefs = getSharedPreferences("app", MODE_PRIVATE);
         String savedFromCurrency = prefs.getString("from_curr", null);
         String savedToCurrency = prefs.getString("to_curr", null);
+        String savedAmount = prefs.getString("cached_amount", null);
         if (savedFromCurrency != null) {
             int pos = ((ArrayAdapter<String>) fromSpinner.getAdapter()).getPosition(savedFromCurrency);
             if (pos >= 0) fromSpinner.setSelection(pos);
@@ -94,9 +96,16 @@ public class MainActivity extends AppCompatActivity {
             int pos = ((ArrayAdapter<String>) toSpinner.getAdapter()).getPosition(savedToCurrency);
             if (pos >= 0) toSpinner.setSelection(pos);
         }
+        if (savedAmount != null) {
+            devFromAmount = savedAmount;
+            fromAmountView.setText(savedAmount);
+            convertHomeToForeign();
+            devToAmount = toAmountView.getText().toString();
+        }
 
         prevFromCurrency = (String) fromSpinner.getSelectedItem();
         prevToCurrency = (String) toSpinner.getSelectedItem();
+        setEditMode(isEditMode);
     }
 
     @Override
@@ -109,10 +118,29 @@ public class MainActivity extends AppCompatActivity {
         setEditMode(!isEditMode);
     }
 
+    public void onSetClick(View v) {
+        // TODO: sync with device here
+        String fromAmount = fromAmountView.getText().toString();
+        String toAmount = toAmountView.getText().toString();
+        SharedPreferences.Editor e = prefs.edit();
+        e.putString("cached_amount", fromAmountView.getText().toString());
+        e.commit();
+        devFromAmount = fromAmount;
+        devToAmount = toAmount;
+    }
+
     private void setEditMode(boolean editable) {
         isEditMode = editable;
+        if (editable) {
+            devFromAmount = fromAmountView.getText().toString();
+            devToAmount = toAmountView.getText().toString();
+        } else {
+            fromAmountView.setText(devFromAmount);
+            toAmountView.setText(devToAmount);
+        }
         setTextViewEditable(fromAmountView, isEditMode, fromEditableBackground);
         setTextViewEditable(toAmountView, isEditMode, toEditableBackground);
+        findViewById(R.id.setButton).setEnabled(editable);
     }
 
     private void setTextViewEditable(EditText v, boolean editable, Drawable editableBackground) {
@@ -146,14 +174,15 @@ public class MainActivity extends AppCompatActivity {
             prevFromCurrency = newCurrency;
             SharedPreferences.Editor e = prefs.edit();
             e.putString("from_curr", newCurrency);
-            e.commit();
+            e.putString("cached_amount", fromAmountView.getText().toString());
+            e.apply();
         } else if (parent == toSpinner) {
             String newCurrency = (String) toSpinner.getItemAtPosition(position);
             convertAndSet(prevToCurrency, newCurrency, toAmountView, toAmountView);
             prevToCurrency = newCurrency;
             SharedPreferences.Editor e = prefs.edit();
             e.putString("to_curr", newCurrency);
-            e.commit();
+            e.apply();
         }
     }
 
