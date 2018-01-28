@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include <stdlib.h>
 #include "readBLE.h"
 
@@ -37,7 +38,7 @@ char readBLE(char **buffer){
 
     *buffer = malloc(length);
     
-    if(readBytes(buffer, length) != length){
+    if(Serial2.readBytes(*buffer, length) != length){
         goto cleanup;
     }
 
