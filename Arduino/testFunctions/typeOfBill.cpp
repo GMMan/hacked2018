@@ -1,0 +1,24 @@
+#include <stdlib.h>
+#include "typeOfBill.h"
+
+// returns index of matching bill
+unsigned int typeOfBill(int databaseSize, int reading[READINGS][COLORS], int database[][READINGS][COLORS]){
+    
+    unsigned int bestMatchIndex = 0;
+    unsigned long bestMatchError = 0;
+    
+    for(unsigned int databaseEntry = 0; databaseEntry < databaseSize; databaseEntry++){
+        unsigned long error = 0;
+        for(unsigned int readingNumber = 0; readingNumber < READINGS; readingNumber++){
+            for(unsigned int colorNumber = 0; colorNumber < COLORS; colorNumber++){
+                error += abs( reading[readingNumber][colorNumber] - database[databaseEntry][readingNumber][colorNumber] );
+            }
+        }
+        if(error < bestMatchError || databaseEntry == 0){
+            bestMatchIndex = databaseEntry;
+            bestMatchError = error;
+        }
+    }
+
+    return bestMatchIndex;
+}
