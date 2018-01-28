@@ -37,6 +37,7 @@
         android:layout_columnSpan="3"
         android:layout_gravity="center_horizontal"
         android:layout_row="1"
+        android:imeOptions="actionDone"
         android:inputType="numberDecimal"
         android:text="0.00"
         android:textAppearance="@android:style/TextAppearance.Material.Display2" />
@@ -69,6 +70,7 @@
         android:layout_columnSpan="3"
         android:layout_gravity="center_horizontal"
         android:layout_row="3"
+        android:imeOptions="actionDone"
         android:inputType="numberDecimal"
         android:text="0.00"
         android:textAppearance="@android:style/TextAppearance.Material.Display2" />
@@ -108,6 +110,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:enabled="false"
             android:text="@string/set_button_text" />
     </LinearLayout>
 

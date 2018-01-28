@@ -3,7 +3,9 @@ package blue.golem.android.walletthing;
 import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -41,8 +43,17 @@ public class MainActivity extends AppCompatActivity {
             isEditMode = savedInstanceState.getBoolean("edit_mode");
         }
 
+        // Setup some views
         setEditMode(isEditMode);
-        
+        TextView.OnEditorActionListener editorActionListener = new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView textView, int i, KeyEvent keyEvent) {
+                return MainActivity.this.onEditorAction(textView, i, keyEvent);
+            }
+        };
+        fromAmountView.setOnEditorActionListener(editorActionListener);
+        toAmountView.setOnEditorActionListener(editorActionListener);
+
         // Setup currency spinners
         Collection<String> currencies = CurrencyConverter.getInstance().getCurrencies();
         List<String> sortedCurrencies = new ArrayList<>(currencies);
@@ -75,23 +86,41 @@ public class MainActivity extends AppCompatActivity {
         if (editable) {
             v.setBackground(editableBackground);
             v.setFocusableInTouchMode(true);
-        }
-        else
-        {
+        } else {
             v.clearFocus();
             v.setBackground(null);
         }
         v.setFocusable(editable);
     }
 
-    /*
-    public void onConvertClick(View v) {
-        String from = (String)fromSpinner.getSelectedItem();
-        String to = (String)toSpinner.getSelectedItem();
-        double amount = Double.parseDouble(fromAmount.getText().toString());
-        BigDecimal fromDec = new BigDecimal(amount);
-        BigDecimal toDec = currencyConverter.convert(from, to, fromDec);
-        fromAmount.setText(toDec.toString());
+    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+        if (actionId == EditorInfo.IME_ACTION_DONE && event == null) {
+            if (v == fromAmountView) {
+                convertHomeToForeign();
+                return true;
+            } else if (v == toAmountView) {
+                convertForeignToHome();
+                return true;
+            }
+        }
+        return false;
     }
-    */
+
+    private void convertHomeToForeign() {
+        String from = (String) fromSpinner.getSelectedItem();
+        String to = (String) toSpinner.getSelectedItem();
+        double amount = Double.parseDouble(fromAmountView.getText().toString());
+        BigDecimal fromDec = new BigDecimal(amount);
+        BigDecimal toDec = CurrencyConverter.getInstance().convert(from, to, fromDec);
+        toAmountView.setText(toDec.toString());
+    }
+
+    private void convertForeignToHome() {
+        String to = (String) fromSpinner.getSelectedItem();
+        String from = (String) toSpinner.getSelectedItem();
+        double amount = Double.parseDouble(toAmountView.getText().toString());
+        BigDecimal fromDec = new BigDecimal(amount);
+        BigDecimal toDec = CurrencyConverter.getInstance().convert(from, to, fromDec);
+        fromAmountView.setText(toDec.toString());
+    }
 }
