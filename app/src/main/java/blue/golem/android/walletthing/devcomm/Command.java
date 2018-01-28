@@ -24,6 +24,10 @@ public abstract class Command {
         bw.write(FRAME_BOUND);
         bw.writeByte(id);
         byte[] serializedParams = serializeParams();
+        int lenHi = (serializedParams.length >> 8) & 0xff;
+        int lenLo = serializedParams.length & 0xff;
+        bw.writeByte(lenHi);
+        bw.writeByte(lenLo);
         bw.write(serializedParams);
         bw.writeByte(calculateParity(serializedParams));
         bw.flush();
