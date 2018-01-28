@@ -45,7 +45,8 @@ public class CurrencyConverter {
         if (toRate == 0) return null;
         double fromRate = currencies.get(from);
         if (fromRate == 0) return null;
-        BigDecimal toEuro = amount.setScale(10).divide(new BigDecimal(fromRate), BigDecimal.ROUND_HALF_EVEN);
+        BigDecimal toEuro = amount.setScale(10, BigDecimal.ROUND_HALF_EVEN)
+                .divide(new BigDecimal(fromRate), BigDecimal.ROUND_HALF_EVEN);
         BigDecimal toTarget = toEuro.multiply(new BigDecimal(toRate));
         BigDecimal finalNum = toTarget.setScale(2, BigDecimal.ROUND_HALF_EVEN);
         return finalNum;

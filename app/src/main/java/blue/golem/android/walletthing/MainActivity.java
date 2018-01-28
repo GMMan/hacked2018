@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
@@ -24,7 +25,10 @@ public class MainActivity extends AppCompatActivity {
     EditText fromAmountView;
     EditText toAmountView;
     boolean isEditMode;
-    Drawable editableBackground;
+    Drawable fromEditableBackground;
+    Drawable toEditableBackground;
+    String prevFromCurrency;
+    String prevToCurrency;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,7 +40,8 @@ public class MainActivity extends AppCompatActivity {
         toSpinner = findViewById(R.id.toSpinner);
         fromAmountView = findViewById(R.id.fromAmountView);
         toAmountView = findViewById(R.id.toAmountView);
-        editableBackground = fromAmountView.getBackground();
+        fromEditableBackground = fromAmountView.getBackground();
+        toEditableBackground = toAmountView.getBackground();
 
         // Restore instance variables
         if (savedInstanceState != null) {
@@ -62,8 +67,24 @@ public class MainActivity extends AppCompatActivity {
                 android.R.layout.simple_list_item_1, sortedCurrencies);
         fromSpinner.setAdapter(adapter);
         toSpinner.setAdapter(adapter);
+        AdapterView.OnItemSelectedListener spinnerSelectedListener = new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                MainActivity.this.onSpinnerItemSelected(adapterView, view, i, l);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        };
+        fromSpinner.setOnItemSelectedListener(spinnerSelectedListener);
+        toSpinner.setOnItemSelectedListener(spinnerSelectedListener);
 
         // TODO: load user settings (from/to currencies)
+
+        prevFromCurrency = (String) fromSpinner.getSelectedItem();
+        prevToCurrency = (String) toSpinner.getSelectedItem();
     }
 
     @Override
@@ -78,11 +99,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void setEditMode(boolean editable) {
         isEditMode = editable;
-        setTextViewEditable(fromAmountView, isEditMode);
-        setTextViewEditable(toAmountView, isEditMode);
+        setTextViewEditable(fromAmountView, isEditMode, fromEditableBackground);
+        setTextViewEditable(toAmountView, isEditMode, toEditableBackground);
     }
 
-    private void setTextViewEditable(EditText v, boolean editable) {
+    private void setTextViewEditable(EditText v, boolean editable, Drawable editableBackground) {
         if (editable) {
             v.setBackground(editableBackground);
             v.setFocusableInTouchMode(true);
@@ -93,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
         v.setFocusable(editable);
     }
 
-    public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+    private boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
         if (actionId == EditorInfo.IME_ACTION_DONE && event == null) {
             if (v == fromAmountView) {
                 convertHomeToForeign();
@@ -106,21 +127,34 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
+    private void onSpinnerItemSelected(AdapterView<?> parent, View view, int position, long id) {
+        if (parent == fromSpinner) {
+            String newCurrency = (String)fromSpinner.getItemAtPosition(position);
+            convertAndSet(prevFromCurrency, newCurrency, fromAmountView, fromAmountView);
+            prevFromCurrency = newCurrency;
+        } else if (parent == toSpinner) {
+            String newCurrency = (String)toSpinner.getItemAtPosition(position);
+            convertAndSet(prevToCurrency, newCurrency, toAmountView, toAmountView);
+            prevToCurrency = newCurrency;
+        }
+    }
+
     private void convertHomeToForeign() {
         String from = (String) fromSpinner.getSelectedItem();
         String to = (String) toSpinner.getSelectedItem();
-        double amount = Double.parseDouble(fromAmountView.getText().toString());
-        BigDecimal fromDec = new BigDecimal(amount);
-        BigDecimal toDec = CurrencyConverter.getInstance().convert(from, to, fromDec);
-        toAmountView.setText(toDec.toString());
+        convertAndSet(from, to, fromAmountView, toAmountView);
     }
 
     private void convertForeignToHome() {
         String to = (String) fromSpinner.getSelectedItem();
         String from = (String) toSpinner.getSelectedItem();
-        double amount = Double.parseDouble(toAmountView.getText().toString());
+        convertAndSet(from, to, toAmountView, fromAmountView);
+    }
+
+    private void convertAndSet(String from, String to, EditText srcView, EditText destView) {
+        double amount = Double.parseDouble(srcView.getText().toString());
         BigDecimal fromDec = new BigDecimal(amount);
         BigDecimal toDec = CurrencyConverter.getInstance().convert(from, to, fromDec);
-        fromAmountView.setText(toDec.toString());
+        destView.setText(toDec.toString());
     }
 }
