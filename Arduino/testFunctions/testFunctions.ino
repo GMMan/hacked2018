@@ -4,6 +4,7 @@
 void setup() {
     // put your setup code here, to run once:
     Serial.begin(9600);
+    Serial2.begin(9600);
     
     int databaseSize = 3;
 
@@ -47,9 +48,20 @@ void setup() {
 
     char *buffer;
     readBLE(&buffer);
+
+    Serial.println("\nend test section\n");
 }
 
 void loop() {
     // put your main code here, to run repeatedly:
-
+    char *buffer;
+    char opCode;
+    
+    if(Serial2.available()){
+        //Serial.println((int)Serial2.read());
+        
+        opCode = readBLE(&buffer);
+        Serial.print("opCode: ");
+        Serial.println((int)opCode);
+    }
 }
