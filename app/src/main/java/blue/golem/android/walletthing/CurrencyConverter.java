@@ -25,6 +25,12 @@ public class CurrencyConverter {
     private static final String TAG = "CurrencyConverter";
     private static final String CURRENCY_XML_URL = "https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml";
 
+    private static CurrencyConverter instance = new CurrencyConverter();
+
+    public static CurrencyConverter getInstance() {
+        return instance;
+    }
+
     private HashMap<String, Double> currencies;
     private boolean isReady;
 

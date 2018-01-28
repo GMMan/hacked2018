@@ -2,4 +2,5 @@
     <string name="app_name">WalletThing</string>
     <string name="from_currency">Home currency</string>
     <string name="to_currency">Foreign currency</string>
+    <string name="loading_text">Loading currencies...</string>
 </resources>
