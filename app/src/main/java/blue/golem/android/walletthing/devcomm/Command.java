@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
  */
 
 public abstract class Command {
-    private static final byte[] FRAME_BOUND = new byte[]{(byte) 0xff, 0x00, (byte) 0xff};
+    static final byte[] FRAME_BOUND = new byte[]{(byte) 0xff, 0x00, (byte) 0xff};
 
     protected byte id;
 
@@ -36,7 +36,7 @@ public abstract class Command {
 
     protected abstract byte[] serializeParams() throws IOException;
 
-    private static byte calculateParity(byte[] buf) {
+    static byte calculateParity(byte[] buf) {
         byte parity = 0;
         for (int i = 0; i < buf.length; ++i) {
             parity ^= buf[i];

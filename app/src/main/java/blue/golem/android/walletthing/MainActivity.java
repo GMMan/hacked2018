@@ -29,6 +29,7 @@ import android.widget.TextView;
 import com.polkapolka.bluetooth.le.BluetoothLeService;
 import com.polkapolka.bluetooth.le.SampleGattAttributes;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -38,7 +39,11 @@ import java.util.Map;
 import java.util.UUID;
 
 import blue.golem.android.walletthing.devcomm.Command;
+import blue.golem.android.walletthing.devcomm.GetValueResponse;
+import blue.golem.android.walletthing.devcomm.Response;
+import blue.golem.android.walletthing.devcomm.ResponseParser;
 import blue.golem.android.walletthing.devcomm.SetDatabaseCommand;
+import blue.golem.android.walletthing.devcomm.SetValueCommand;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -99,6 +104,9 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
                 if (characteristicTX != null) sendSelectedDatabase();
+                bleService.setCharacteristicNotification(characteristicRX, true);
+            } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
+                processResponse();
             }
         }
     };
@@ -221,9 +229,9 @@ public class MainActivity extends AppCompatActivity {
         intentFilter.addAction(BluetoothLeService.ACTION_DEVICE_FOUND);
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
+        intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
 /*
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
-        intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
 */
         return intentFilter;
     }
@@ -320,8 +328,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean sendSelectedDatabase() {
-        String from = (String)fromSpinner.getSelectedItem();
-        String to = (String)toSpinner.getSelectedItem();
+        String from = (String) fromSpinner.getSelectedItem();
+        String to = (String) toSpinner.getSelectedItem();
         Map<Integer, int[][]> db = DetectionDatabase.getDatabaseForCurrency(to);
         if (db != null) {
             int[] vals = new int[db.size()];
@@ -342,6 +350,12 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private boolean sendSetValue(double value) {
+        SetValueCommand cmd = new SetValueCommand();
+        cmd.setCurrencyValue(value);
+        return sendCommand(cmd);
+    }
+
     private boolean sendCommand(Command cmd) {
         try {
             byte[] dataToSend = cmd.serialize();
@@ -352,6 +366,34 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception ex) {
             Log.e(TAG, "Failed to send command.", ex);
             return false;
+        }
+    }
+
+    private void processResponse() {
+        try {
+            byte[] msg = characteristicRX.getValue();
+            Response r = ResponseParser.parse(msg);
+            if (r != null) {
+                if (r instanceof GetValueResponse)
+                    processGetValueResponse((GetValueResponse) r);
+            }
+        } catch (IOException ex) {
+            Log.e(TAG, "Failed to process BLE response.", ex);
+        }
+    }
+
+    private void processGetValueResponse(GetValueResponse r) {
+        if (r.getValue() < 0) {
+            // Send cached value to device
+            double amount = Double.parseDouble(toAmountView.getText().toString());
+            sendSetValue(amount);
+        } else {
+            // Set cached value to device's value
+            toAmountView.setText(Double.toString(r.getValue()));
+            convertForeignToHome();
+            SharedPreferences.Editor e = prefs.edit();
+            e.putString("cached_amount", fromAmountView.getText().toString());
+            e.apply();
         }
     }
 }
