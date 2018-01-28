@@ -1,5 +1,5 @@
-#include "typeOfBill.h"
 #include <stdlib.h>
+#include "typeOfBill.h"
 
 // returns index of matching bill
 unsigned int typeOfBill(int numColors, int numReadings, int databaseSize,

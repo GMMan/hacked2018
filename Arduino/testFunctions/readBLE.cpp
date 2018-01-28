@@ -1,11 +1,14 @@
 #include <stdlib.h>
+#include "readBLE.h"
+
+#define INVALID_OP_CODE     0xff
 
 // returns command ID or 0xffffff for invalid
 char readBLE(char **buffer){
     Serial2.begin(9600);
 
     char tempByte = 0x00;
-    char opCode = 0xff;
+    char opCode = INVALID_OP_CODE;
     char parityByte = 0x00;
     int length = 0;
 
@@ -25,11 +28,11 @@ char readBLE(char **buffer){
             length |= (int)tempByte;
         }
         else{
-            return 0xff;
+            return INVALID_OP_CODE;
         }
     }
     else{
-        return 0xff;
+        return INVALID_OP_CODE;
     }
 
     *buffer = malloc(length);
@@ -54,5 +57,5 @@ char readBLE(char **buffer){
     cleanup:
     free(*buffer);
     *buffer = NULL;
-    return 0xff;
+    return INVALID_OP_CODE;
 }
