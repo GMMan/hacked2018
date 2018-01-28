@@ -241,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onSetClick(View v) {
-        // TODO: sync with device here
+        sendSetValue(Double.parseDouble(toAmountView.getText().toString()));
         String fromAmount = fromAmountView.getText().toString();
         String toAmount = toAmountView.getText().toString();
         SharedPreferences.Editor e = prefs.edit();
@@ -305,6 +305,8 @@ public class MainActivity extends AppCompatActivity {
             SharedPreferences.Editor e = prefs.edit();
             e.putString("to_curr", newCurrency);
             e.apply();
+            sendSetValue(Double.parseDouble(toAmountView.getText().toString()));
+            sendSelectedDatabase();
         }
     }
 
@@ -357,6 +359,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean sendCommand(Command cmd) {
+        if (characteristicTX == null) return false;
+
         try {
             byte[] dataToSend = cmd.serialize();
             characteristicTX.setValue(dataToSend);
