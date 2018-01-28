@@ -4,7 +4,7 @@
 
 #define INVALID_OP_CODE     0xff
 
-// returns command ID or 0xffffff for invalid
+// returns command ID or 0xff for invalid
 char readBLE(char **buffer){
     Serial2.begin(9600);
 

@@ -1,4 +1,4 @@
-#ifdef READBLE_H
+#ifndef READBLE_H
 #define READBLE_H
 
 // returns command ID or 0xffffff for invalid

@@ -16,12 +16,12 @@ void setup() {
     for(int i = 0; i < READINGS; i++){
         for(int j = 0; j < COLORS; j++){
             reading[i][j] = random(200);
-            Serial.println("reading ");
+            Serial.print("reading ");
             Serial.print(i);
             Serial.print(" ");
             Serial.print(j);
             Serial.print(" ");
-            Serial.print(reading[i][j]);
+            Serial.println(reading[i][j]);
         }
     }
 
@@ -31,21 +31,22 @@ void setup() {
         for(int i = 0; i < READINGS; i++){
             for(int j = 0; j < COLORS; j++){
                 database[h][i][j] = random(200);
-                Serial.println("database ");
+                Serial.print("database ");
                 Serial.print(h);
                 Serial.print(" ");
                 Serial.print(i);
                 Serial.print(" ");
                 Serial.print(j);
                 Serial.print(" ");
-                Serial.print(database[h][i][j]);
+                Serial.println(database[h][i][j]);
             }
         }
     }
 
     Serial.println();
 
-    Serial.println("Type of bill: " + typeOfBill(COLORS, READINGS, databaseSize, reading, database));
+    Serial.print("Type of bill: ");
+    Serial.println(typeOfBill(COLORS, READINGS, databaseSize, reading, database));
 
     char *buffer;
     readBLE(&buffer);

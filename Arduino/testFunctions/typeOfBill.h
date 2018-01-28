@@ -1,4 +1,4 @@
-#ifdef TYPEOFBILL_H
+#ifndef TYPEOFBILL_H
 #define TYPEOFBILL_H
 
 // returns index of matching bill
