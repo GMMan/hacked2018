@@ -1,5 +1,6 @@
 package blue.golem.android.walletthing;
 
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -29,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     Drawable toEditableBackground;
     String prevFromCurrency;
     String prevToCurrency;
+    SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,7 +83,17 @@ public class MainActivity extends AppCompatActivity {
         fromSpinner.setOnItemSelectedListener(spinnerSelectedListener);
         toSpinner.setOnItemSelectedListener(spinnerSelectedListener);
 
-        // TODO: load user settings (from/to currencies)
+        prefs = getSharedPreferences("app", MODE_PRIVATE);
+        String savedFromCurrency = prefs.getString("from_curr", null);
+        String savedToCurrency = prefs.getString("to_curr", null);
+        if (savedFromCurrency != null) {
+            int pos = ((ArrayAdapter<String>) fromSpinner.getAdapter()).getPosition(savedFromCurrency);
+            if (pos >= 0) fromSpinner.setSelection(pos);
+        }
+        if (savedToCurrency != null) {
+            int pos = ((ArrayAdapter<String>) toSpinner.getAdapter()).getPosition(savedToCurrency);
+            if (pos >= 0) toSpinner.setSelection(pos);
+        }
 
         prevFromCurrency = (String) fromSpinner.getSelectedItem();
         prevToCurrency = (String) toSpinner.getSelectedItem();
@@ -129,13 +141,19 @@ public class MainActivity extends AppCompatActivity {
 
     private void onSpinnerItemSelected(AdapterView<?> parent, View view, int position, long id) {
         if (parent == fromSpinner) {
-            String newCurrency = (String)fromSpinner.getItemAtPosition(position);
+            String newCurrency = (String) fromSpinner.getItemAtPosition(position);
             convertAndSet(prevFromCurrency, newCurrency, fromAmountView, fromAmountView);
             prevFromCurrency = newCurrency;
+            SharedPreferences.Editor e = prefs.edit();
+            e.putString("from_curr", newCurrency);
+            e.commit();
         } else if (parent == toSpinner) {
-            String newCurrency = (String)toSpinner.getItemAtPosition(position);
+            String newCurrency = (String) toSpinner.getItemAtPosition(position);
             convertAndSet(prevToCurrency, newCurrency, toAmountView, toAmountView);
             prevToCurrency = newCurrency;
+            SharedPreferences.Editor e = prefs.edit();
+            e.putString("to_curr", newCurrency);
+            e.commit();
         }
     }
 
