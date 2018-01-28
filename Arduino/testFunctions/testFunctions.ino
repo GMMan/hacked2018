@@ -1,9 +1,6 @@
 #include "readBLE.h"
 #include "typeOfBill.h"
 
-#define READINGS    3
-#define COLORS      3
-
 void setup() {
     // put your setup code here, to run once:
     Serial.begin(9600);
@@ -46,7 +43,7 @@ void setup() {
     Serial.println();
 
     Serial.print("Type of bill: ");
-    Serial.println(typeOfBill(COLORS, READINGS, databaseSize, reading, database));
+    Serial.println(typeOfBill(databaseSize, reading, database));
 
     char *buffer;
     readBLE(&buffer);
