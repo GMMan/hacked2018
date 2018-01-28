@@ -63,5 +63,13 @@ void loop() {
         opCode = readBLE(&buffer);
         Serial.print("opCode: ");
         Serial.println((int)opCode);
+        switch((int)opCode){
+            case 1: //update database
+                break;
+            case 2: //set value
+                break;
+            case 3: //get values
+                break;
+        }
     }
 }
