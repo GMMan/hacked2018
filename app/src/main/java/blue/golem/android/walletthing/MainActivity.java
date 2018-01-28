@@ -72,6 +72,8 @@ public class MainActivity extends AppCompatActivity {
         public void onReceive(Context context, Intent intent) {
             final String action = intent.getAction();
             if (BluetoothLeService.ACTION_DEVICE_FOUND.equals(action)) {
+                bleService.connect(bleService.getFoundBluetoothDeviceAddress());
+                
                 AlertDialog.Builder alertBuilder = new AlertDialog.Builder(MainActivity.this);
                 alertBuilder.setMessage("Device found: " + bleService.getFoundBluetoothDeviceAddress())
                         .setIcon(android.R.drawable.ic_dialog_info)
