@@ -1,6 +1,10 @@
 #include <Adafruit_NeoPixel.h>
+#include <Adafruit_GFX.h>
+#include <stdlib.h>
 #include "readBLE.h"
 #include "typeOfBill.h"
+#include "num2Display.h"
+#include "Adafruit_LEDBackpack.h"
 
 #define NEO_PIXEL_PIN   6
 
@@ -17,6 +21,7 @@ byte *values;
 char *buffer;
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, NEO_PIXEL_PIN, NEO_RGBW + NEO_KHZ800);
+Adafruit_7segment disp = Adafruit_7segment();
 
 void setup() {
     // put your setup code here, to run once:
@@ -25,10 +30,13 @@ void setup() {
 
     strip.begin();
     strip.setBrightness(30);
+    disp.begin(DISPLAY_ADDRESS);
 
     pinMode(encoderPin, INPUT);
 
     Serial.println("\nend test section\n");
+
+    num2Disp(1234567, disp);
 }
 
 void loop() {
