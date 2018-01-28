@@ -2,9 +2,6 @@
 #include <stdlib.h>
 #include "readBLE.h"
 
-#define INVALID_OP_CODE     0xff
-#define TIMEOUT             10
-
 // returns command ID or 0xff for invalid
 char readBLE(char **buffer){
 

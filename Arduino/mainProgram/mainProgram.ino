@@ -8,7 +8,12 @@
 
 #define NEO_PIXEL_PIN   6
 
+#define READINGS    5
+#define NUM_SENSORS 4
+#define COLORS      3
+
 const int encoderPin = 7;
+const int buttonPin = 8;
 const int timeout = 1000;
 
 int sensorPin[NUM_SENSORS] = {A0, A1, A2, A3};
@@ -19,6 +24,14 @@ byte *database;
 byte *values;
 
 char *buffer;
+
+int cachedValue = 150;
+
+int screenOnTime = millis();
+int screenTimeout = 10000;
+int currentSum = 0;
+
+byte *readingValue = NULL;
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, NEO_PIXEL_PIN, NEO_RGBW + NEO_KHZ800);
 Adafruit_7segment disp = Adafruit_7segment();
@@ -33,14 +46,21 @@ void setup() {
     disp.begin(DISPLAY_ADDRESS);
 
     pinMode(encoderPin, INPUT);
+    pinMode(buttonPin, INPUT);
 
-    Serial.println("\nend test section\n");
+    Serial.println("\n end test section \n");
 
-    num2Disp(1234567, disp);
+    readingValue = malloc(READINGS * NUM_SENSORS * COLORS);
 }
 
 void loop() {
     // put your main code here, to run repeatedly:
+
+    if(millis() - screenOnTime < screenTimeout || digitalRead(buttonPin == HIGH)){
+        disp.clear();
+        disp.writeDisplay();
+        currentSum = 0;
+    }
     
     char opCode;
     
@@ -55,15 +75,23 @@ void loop() {
                 updateDatabase();
                 break;
             case 2: //set value
+                updateValue();
                 break;
             case 3: //get values
+                sendValue();
                 break;
+        }
+        if (opCode != INVALID_OP_CODE) {
+            free(buffer);
+            buffer = NULL;
         }
     }
 
+    Serial.println(cachedValue);   
+
     if(digitalRead(encoderPin == HIGH)){
         int startTime = millis();
-        byte readingValue[READINGS * NUM_SENSORS][COLORS];
+        //byte readingValue[READINGS * NUM_SENSORS][COLORS];
         for(int reading = 0; reading < READINGS; reading++){
             delay(50);
             while(digitalRead(encoderPin == LOW) && millis() - startTime > timeout); // wait for rotary encoder pulse
@@ -74,10 +102,14 @@ void loop() {
                 strip.show();
                 
                 for(int sensor = 0; sensor < NUM_SENSORS; sensor++){
-                    readingValue[reading * NUM_SENSORS + sensor][color] = analogRead(sensorPin[sensor]);
+                    readingValue[reading * NUM_SENSORS + color * COLORS + sensor] = analogRead(sensorPin[sensor]);
                 }
             }
         }
+
+        int matchingIndex = typeOfBill(databaseSize, readingValue, database);
+        currentSum += values[matchingIndex];
+        num2Disp(currentSum, disp);
     }
 }
 
@@ -98,14 +130,62 @@ void updateDatabase(){
     memcpy(database, readPtr, dimension1 * dimension2 * dimension3);
 }
 
+char calcParity(char *buf, int len) {
+    char parity = 0;
+    int i;
+    for (i = 0; i < len; ++i) {
+        parity ^= buf[i];
+    }
+    return parity;
+}
+
+void sendMessage(char opCode, char *params, int paramsLength) {
+    int bufLength = 3 + 1 + 2 + paramsLength + 1;
+    char *buffer = malloc(bufLength);
+    buffer[0] = 0xff;
+    buffer[1] = 0;
+    buffer[2] = 0xff;
+    buffer[3] = opCode;
+    buffer[4] = (paramsLength >> 8) & 0xff;
+    buffer[5] = paramsLength & 0xff;
+    memcpy(&buffer[6], params, paramsLength);
+    buffer[6 + paramsLength] = calcParity(params, paramsLength);
+    Serial2.write(buffer, bufLength);
+    free(buffer);
+}
+
+void updateValue() {
+    char *readPtr = buffer;
+    cachedValue = read7BitEncodedInt(&readPtr);
+}
+
+void sendValue() {
+    char *buffer = malloc(20);
+    char *writePtr = buffer;
+    write7BitEncodedInt(&writePtr, cachedValue);
+    sendMessage(3, buffer, writePtr - buffer);
+    free(buffer);
+}
+
 int read7BitEncodedInt(char **buffer) {
     int i = 0;
+    int shift = 0;
     char ch;
     do {
-        ch = *(*buffer++);
-        i << 7;
-        i |= ch & 0x7f;
+        ch = **buffer;
+        i |= (ch & 0x7f) << shift;
+        shift += 7;
+        (*buffer)++;
     } while (ch & 0x80);
     return i;
+}
+
+void write7BitEncodedInt(char **buffer, int value) {
+    while (value) {
+        **buffer = value & 0x7f;
+        value >>= 7;
+        if (value) **buffer |= 0x80;
+        (*buffer)++;
+    }
 }
 
