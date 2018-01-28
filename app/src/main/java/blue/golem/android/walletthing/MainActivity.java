@@ -8,19 +8,16 @@ import android.widget.EditText;
 import android.widget.Spinner;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
 
     CurrencyConverter currencyConverter = new CurrencyConverter();
     Spinner fromSpinner;
     Spinner toSpinner;
-    EditText amountBox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,9 +25,9 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         fromSpinner = findViewById(R.id.fromSpinner);
         toSpinner = findViewById(R.id.toSpinner);
-        amountBox = findViewById(R.id.amountEdit);
     }
 
+    /*
     public void onRefreshClick(View v) {
         Collection<String> currencies = currencyConverter.getCurrencies();
         List<String> sortedCurrencies = new ArrayList<>(currencies);
@@ -44,9 +41,10 @@ public class MainActivity extends AppCompatActivity {
     public void onConvertClick(View v) {
         String from = (String)fromSpinner.getSelectedItem();
         String to = (String)toSpinner.getSelectedItem();
-        double amount = Double.parseDouble(amountBox.getText().toString());
+        double amount = Double.parseDouble(fromAmount.getText().toString());
         BigDecimal fromDec = new BigDecimal(amount);
         BigDecimal toDec = currencyConverter.convert(from, to, fromDec);
-        amountBox.setText(toDec.toString());
+        fromAmount.setText(toDec.toString());
     }
+    */
 }

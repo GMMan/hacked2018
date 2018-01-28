@@ -1,51 +1,115 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context="blue.golem.android.walletthing.MainActivity">
+    tools:context="blue.golem.android.walletthing.MainActivity"
+    android:columnCount="3"
+    android:padding="16dp">
+
+
+    <TextView
+        android:id="@+id/fromCurrLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_column="0"
+        android:layout_gravity="center"
+        android:layout_row="0"
+        android:text="@string/from_currency"
+        android:textAppearance="@android:style/TextAppearance.Material.Medium" />
 
     <Spinner
         android:id="@+id/fromSpinner"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        tools:layout_editor_absoluteX="8dp"
-        tools:layout_editor_absoluteY="16dp" />
+        android:layout_column="1"
+        android:layout_columnSpan="2"
+        android:layout_gravity="fill_horizontal"
+        android:layout_row="0" />
+
+    <TextView
+        android:id="@+id/fromAmountView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_column="0"
+        android:layout_row="1"
+        android:layout_columnSpan="3"
+        android:layout_gravity="center_horizontal"
+        android:text="$ X.XX"
+        android:textAppearance="@android:style/TextAppearance.Material.Display3" />
+
+    <TextView
+        android:id="@+id/toCurrLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_column="0"
+        android:layout_gravity="center"
+        android:layout_row="2"
+        android:text="@string/to_currency"
+        android:textAppearance="@android:style/TextAppearance.Material.Medium" />
 
     <Spinner
         android:id="@+id/toSpinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_column="1"
+        android:layout_columnSpan="2"
+        android:layout_gravity="fill_horizontal"
+        android:layout_row="2" />
+
+    <TextView
+        android:id="@+id/toAmountView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_column="0"
+        android:layout_columnSpan="3"
+        android:layout_gravity="center_horizontal"
+        android:layout_row="3"
+        android:text="$ X.XX"
+        android:textAppearance="@android:style/TextAppearance.Material.Display3" />
+
+    <Space
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_column="0"
+        android:layout_row="4"
+        android:layout_columnSpan="3"
+        android:layout_gravity="fill"/>
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        tools:layout_editor_absoluteX="8dp"
-        tools:layout_editor_absoluteY="40dp" />
+        android:orientation="horizontal"
+        android:layout_columnSpan="3"
+        android:layout_gravity="bottom">
 
-    <EditText
-        android:id="@+id/amountEdit"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="84dp"
-        android:ems="10"
-        android:hint="amount"
-        android:inputType="numberDecimal"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:layout_editor_absoluteY="64dp" />
+        <Button
+            android:id="@+id/modeButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="0"
+            android:layout_row="5"
+            android:layout_weight="1"
+            android:text="Mode" />
 
-    <Button
-        android:id="@+id/convertButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="onConvertClick"
-        android:text="Convert"
-        tools:layout_editor_absoluteX="148dp"
-        tools:layout_editor_absoluteY="122dp" />
+        <Button
+            android:id="@+id/deviceButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="1"
+            android:layout_row="5"
+            android:layout_weight="1"
+            android:text="Device" />
 
-    <Button
-        android:id="@+id/refreshButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="onRefreshClick"
-        android:text="Refresh" />
+        <Button
+            android:id="@+id/button4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_column="2"
+            android:layout_row="5"
+            android:layout_weight="1"
+            android:text="Mystery" />
+    </LinearLayout>
 
-</LinearLayout>
+</GridLayout>
