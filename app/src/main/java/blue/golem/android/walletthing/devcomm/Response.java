@@ -19,11 +19,12 @@ public abstract class Response {
 
     protected static int read7BitEncodedInt(DataInputStream br) throws IOException {
         int i = 0;
+        int shift = 0;
         byte b;
         do {
-            i <<= 7;
             b = br.readByte();
-            i |= b & 0x7f;
+            i |= (b & 0x7f) << shift;
+            shift += 7;
         } while ((b & 0x80) != 0);
         return i;
     }

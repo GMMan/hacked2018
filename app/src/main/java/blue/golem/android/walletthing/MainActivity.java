@@ -40,6 +40,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import blue.golem.android.walletthing.devcomm.Command;
+import blue.golem.android.walletthing.devcomm.GetValueCommand;
 import blue.golem.android.walletthing.devcomm.GetValueResponse;
 import blue.golem.android.walletthing.devcomm.Response;
 import blue.golem.android.walletthing.devcomm.ResponseParser;
@@ -111,7 +112,10 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     }
                 }
-                if (characteristicTX != null) sendSelectedDatabase();
+                if (characteristicTX != null){
+                    sendSelectedDatabase();
+                    sendGetValue();
+                }
                 bleService.setCharacteristicNotification(characteristicRX, true);
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 processResponse();
@@ -373,6 +377,11 @@ public class MainActivity extends AppCompatActivity {
     private boolean sendSetValue(double value) {
         SetValueCommand cmd = new SetValueCommand();
         cmd.setCurrencyValue(value);
+        return sendCommand(cmd);
+    }
+
+    private boolean sendGetValue() {
+        GetValueCommand cmd = new GetValueCommand();
         return sendCommand(cmd);
     }
 

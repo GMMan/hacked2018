@@ -1,5 +1,7 @@
 package blue.golem.android.walletthing.devcomm;
 
+import android.util.Log;
+
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -46,7 +48,7 @@ public abstract class Command {
 
     protected static void write7BitEncodedInt(DataOutputStream os, int value) throws IOException {
         while (value > 0) {
-            int toWrite = value | 0x7f;
+            int toWrite = value & 0x7f;
             value >>>= 7;
             if (value > 0) toWrite |= 0x80;
             os.writeByte(toWrite);
