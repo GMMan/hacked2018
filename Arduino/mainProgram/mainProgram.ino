@@ -12,12 +12,12 @@
 #define NUM_SENSORS 4
 #define COLORS      3
 
-const int encoderPin = 7;
+const int encoderPin = 11;
 const int buttonPin = 8;
-const int timeout = 1000;
+const int timeout = 10000;
 
 int sensorPin[NUM_SENSORS] = {A0, A1, A2, A3};
-int colorValue[COLORS] = {0, 100, 200};
+int colorValue[COLORS] = {0x000000ff, 0xff000000, 0x00ff0000};
 
 int databaseSize = 0;
 byte *database;
@@ -33,7 +33,7 @@ int currentSum = 0;
 
 byte *readingValue = NULL;
 
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, NEO_PIXEL_PIN, NEO_RGBW + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(8, NEO_PIXEL_PIN, NEO_RGBW + NEO_KHZ800);
 Adafruit_7segment disp = Adafruit_7segment();
 
 void setup() {
@@ -42,7 +42,7 @@ void setup() {
     Serial2.begin(9600);
 
     strip.begin();
-    strip.setBrightness(30);
+    //strip.setBrightness(30);
     disp.begin(DISPLAY_ADDRESS);
 
     pinMode(encoderPin, INPUT);
@@ -55,6 +55,7 @@ void setup() {
 
 void loop() {
     // put your main code here, to run repeatedly:
+    num2Disp(cachedValue, disp);
 
     if(millis() - screenOnTime < screenTimeout || digitalRead(buttonPin == HIGH)){
         disp.clear();
@@ -93,7 +94,7 @@ void loop() {
         int startTime = millis();
         //byte readingValue[READINGS * NUM_SENSORS][COLORS];
         for(int reading = 0; reading < READINGS; reading++){
-            delay(50);
+            delay(500);
             while(digitalRead(encoderPin == LOW) && millis() - startTime > timeout); // wait for rotary encoder pulse
             if(millis() - startTime > timeout) break;
             for(int color = 0; color < COLORS; color++){
@@ -105,6 +106,9 @@ void loop() {
                     readingValue[reading * NUM_SENSORS + color * COLORS + sensor] = analogRead(sensorPin[sensor]);
                 }
             }
+            for(uint16_t i=0; i<strip.numPixels(); i++)
+                strip.setPixelColor(i, 0);
+            strip.show();
         }
 
         int matchingIndex = typeOfBill(databaseSize, readingValue, database);
