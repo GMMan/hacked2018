@@ -1,10 +1,18 @@
 package blue.golem.android.walletthing;
 
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
@@ -14,6 +22,8 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.polkapolka.bluetooth.le.BluetoothLeService;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,18 +32,54 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    Spinner fromSpinner;
-    Spinner toSpinner;
-    EditText fromAmountView;
-    EditText toAmountView;
-    boolean isEditMode;
-    Drawable fromEditableBackground;
-    Drawable toEditableBackground;
-    String prevFromCurrency;
-    String prevToCurrency;
-    String devFromAmount = "0.00";
-    String devToAmount = "0.00";
-    SharedPreferences prefs;
+    private static final String TAG = MainActivity.class.getSimpleName();
+
+    private Spinner fromSpinner;
+    private Spinner toSpinner;
+    private EditText fromAmountView;
+    private EditText toAmountView;
+    private boolean isEditMode;
+    private Drawable fromEditableBackground;
+    private Drawable toEditableBackground;
+    private String prevFromCurrency;
+    private String prevToCurrency;
+    private String devFromAmount = "0.00";
+    private String devToAmount = "0.00";
+    private SharedPreferences prefs;
+    private BluetoothLeService bleService;
+
+    private final ServiceConnection mServiceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder service) {
+            bleService = ((BluetoothLeService.LocalBinder) service).getService();
+            if (!bleService.initialize()) {
+                Log.e(TAG, "Unable to initialize Bluetooth");
+                finish();
+            }
+            // Automatically connects to the device upon successful start-up initialization.
+            bleService.autoDetectSerialDevice();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            bleService = null;
+        }
+    };
+
+    private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            final String action = intent.getAction();
+            if (BluetoothLeService.ACTION_DEVICE_FOUND.equals(action)) {
+                AlertDialog.Builder alertBuilder = new AlertDialog.Builder(MainActivity.this);
+                alertBuilder.setMessage("Device found: " + bleService.getFoundBluetoothDeviceAddress())
+                        .setIcon(android.R.drawable.ic_dialog_info)
+                        .setPositiveButton("OK", null)
+                        .create().show();
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -114,12 +160,52 @@ public class MainActivity extends AppCompatActivity {
         prevFromCurrency = (String) fromSpinner.getSelectedItem();
         prevToCurrency = (String) toSpinner.getSelectedItem();
         setEditMode(isEditMode);
+
+        Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
+        bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+/*
+        if (bleService != null) {
+            final boolean result = bleService.connect(mDeviceAddress);
+            Log.d(TAG, "Connect request result=" + result);
+        }
+*/
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        unregisterReceiver(mGattUpdateReceiver);
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putBoolean("edit_mode", isEditMode);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(mServiceConnection);
+        bleService = null;
+    }
+
+    private static IntentFilter makeGattUpdateIntentFilter() {
+        final IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(BluetoothLeService.ACTION_DEVICE_FOUND);
+/*
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
+        intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
+        intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
+*/
+        return intentFilter;
     }
 
     public void onModeClick(View v) {
